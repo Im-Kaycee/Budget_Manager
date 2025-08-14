@@ -52,7 +52,7 @@ A FastAPI-powered backend for a personal budget tracking application with JWT au
 ### Backend
 1. Install dependencies:
    ```bash
-   pip install fastapi sqlmodel python-jose[cryptography] passlib uvicorn
+   pip install -r requirements.txt
 2. Run the server:
    ```bash
    uvicorn main:app --reload
