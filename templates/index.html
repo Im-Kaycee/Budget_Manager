@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julius - Track Your Finances</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.16.4/framer-motion.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Fira+Code:wght@300..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        
+        body {
+            font-family: 'Comic Neue';
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .sidebar-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-right: 3px solid #667eea;
+        }
+        
+        .expense-item {
+            transition: all 0.3s ease;
+        }
+        
+        .expense-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.02);
+        }
+        
+        .budget-progress {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        
+        .expense-progress {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        
+.Btn {
+  width: 130px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(15, 15, 15);
+  border: none;
+  color: white;
+  font-weight: 600;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.103);
+  position: relative;
+  overflow: hidden;
+  transition-duration: .3s;
+}
+
+.svgIcon {
+  width: 16px;
+}
+
+.svgIcon path {
+  fill: white;
+}
+
+.Btn::before {
+  width: 130px;
+  height: 130px;
+  position: absolute;
+  content: "";
+  background-color: white;
+  border-radius: 50%;
+  left: -100%;
+  top: 0;
+  transition-duration: .3s;
+  mix-blend-mode: difference;
+}
+
+.Btn:hover::before {
+  transition-duration: .3s;
+  transform: translate(100%,-50%);
+  border-radius: 0;
+}
+
+.Btn:active {
+  transform: translate(5px,5px);
+  transition-duration: .3s;
+}
+    </style>
+</head>
+<body class="bg-[#131313] text-white overflow-x-hidden">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-effect">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-bold">Julius</h1>
+                </div>
+                
+                <div id="userSection" class="hidden items-center space-x-4 flex justify-between">
+                    <span id="welcomeText" class="text-sm text-gray-300"></span>
+                    <button id="logoutBtn" class="Btn">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth Section -->
+    <div id="authSection" class="min-h-[50%] flex items-center justify-center px-6 mt-20">
+        <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+                
+                <h2 class="text-4xl font-bold mb-2">Welcome to Julius</h2>
+                <p class="text-gray-400">Track your expenses and manage budgets effortlessly</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="glass-effect rounded-2xl p-8">
+                <h3 class="text-xl font-semibold mb-6">Sign In</h3>
+                <form id="loginFormEl" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="loginUsername" required 
+                               class="w-full px-4 py-3 bg-gray-500 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="loginPassword" required
+                               class="w-full px-4 py-3 bg-gray-500 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Password">
+                    </div>
+                   <div class="flex justify-center">
+                    <button class="Btn" type="submit">
+                    <span id="loginBtnText">Sign In</span>
+                    <div id="loginSpinner" class="loading-spinner mx-auto hidden"></div>
+                   
+                    </button>
+                 </div>
+                    <!--<button type="submit" class="w-full gradient-bg py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        <span id="loginBtnText">Sign In</span>
+                        <div id="loginSpinner" class="loading-spinner mx-auto hidden"></div>
+                    </button> -->
+                </form>
+                <p class="text-center mt-4 text-gray-400">
+                    Don't have an account? 
+                    <button id="showRegister" class="text-purple-400 hover:text-purple-300">Sign up</button>
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerForm" class="glass-effect rounded-2xl p-8 hidden">
+                <h3 class="text-xl font-semibold mb-6">Create Account</h3>
+                <form id="registerFormEl" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="registerUsername" required 
+                               class="w-full px-4 py-3 bg-gray-500 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="registerEmail" required
+                               class="w-full px-4 py-3 bg-gray-500 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Email">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="registerPassword" required
+                               class="w-full px-4 py-3 bg-gray-500 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Password">
+                    </div>
+                    <div class="flex justify-center">
+                    <button class="Btn" type="submit">
+                    <span id="RegisterBtnText">Register</span>
+                    <div id="RegisterSpinner" class="loading-spinner mx-auto hidden"></div>
+            
+                    </button>
+                 </div>
+                </form>
+                <p class="text-center mt-4 text-gray-400">
+                    Already have an account? 
+                    <button id="showLogin" class="text-purple-400 hover:text-purple-300">Sign in</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardSection" class="hidden">
+        <div class="flex min-h-screen pt-20">
+            <!-- Sidebar -->
+            <div class="w-64 bg-gray-800 fixed left-0 top-20 bottom-0 p-6">
+                <nav class="space-y-2">
+                    <button class="sidebar-item active w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="overview">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Overview</span>
+                    </button>
+                    <button class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="expenses">
+                        <i class="fas fa-receipt"></i>
+                        <span>Expenses</span>
+                    </button>
+                    <button class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="budgets">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Budgets</span>
+                    </button>
+                    <button class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 ml-64 p-6">
+                <!-- Overview Section -->
+                <div id="overviewSection" class="section">
+                    <h2 class="text-3xl font-bold mb-8">Dashboard Overview</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass-effect rounded-2xl p-6 card-hover transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-white"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold" id="totalBudget">$0</h3>
+                            <p class="text-gray-400 text-sm">Total Budget</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-credit-card text-white"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold" id="totalSpent">$0</h3>
+                            <p class="text-gray-400 text-sm">Total Spent</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-wallet text-white"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold" id="remaining">$0</h3>
+                            <p class="text-gray-400 text-sm">Remaining this Month</p>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6 card-hover transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-white"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold" id="savingsRate">0%</h3>
+                            <p class="text-gray-400 text-sm">Savings Rate</p>
+                        </div>
+                    </div>
+
+                    <!-- Budget Progress -->
+                    <div class="glass-effect rounded-2xl p-6 mb-8">
+                        <h3 class="text-xl font-semibold mb-4">Monthly Budget Progress</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between text-sm">
+                                <span>Budget Used</span>
+                                <span id="budgetPercentage">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-3">
+                                <div id="budgetProgressBar" class="budget-progress h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Expenses -->
+                    <div class="glass-effect rounded-2xl p-6">
+                        <h3 class="text-xl font-semibold mb-4">Recent Expenses</h3>
+                        <div id="recentExpenses" class="space-y-3">
+                            <!-- Recent expenses will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Section -->
+                <div id="expensesSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-3xl font-bold">Expenses</h2>
+                        <button id="addExpenseBtn" class="gradient-bg px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                            <i class="fas fa-plus mr-2"></i>Add Expense
+                        </button>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl p-6">
+                        <div id="expensesList" class="space-y-4">
+                            <!-- Expenses will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budgets Section -->
+                <div id="budgetsSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-3xl font-bold">Budgets</h2>
+                        <button id="addBudgetBtn" class="gradient-bg px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                            <i class="fas fa-plus mr-2"></i>Set Budget
+                        </button>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl p-6">
+                        <div id="budgetsList" class="space-y-4">
+                            <!-- Budgets will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analyticsSection" class="section hidden">
+                    <h2 class="text-3xl font-bold mb-8">Analytics</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-xl font-semibold mb-4">Weekly Analysis</h3>
+                            <div id="weeklyAnalysis">
+                                <!-- Weekly analysis will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-2xl p-6">
+                            <h3 class="text-xl font-semibold mb-4">Monthly Analysis</h3>
+                            <div id="monthlyAnalysis">
+                                <!-- Monthly analysis will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expenseModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-semibold mb-6">Add New Expense</h3>
+            <form id="expenseForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Amount</label>
+                    <input type="number" step="0.01" id="expenseAmount" required 
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Category</label>
+                    <select id="expenseCategory" required
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="food">Food & Dining</option>
+                        <option value="transportation">Transportation</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="bills">Bills & Utilities</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <input type="text" id="expenseDescription" 
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Date</label>
+                    <input type="datetime-local" id="expenseDate" required
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" id="cancelExpense" class="flex-1 px-4 py-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 gradient-bg py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        Add Expense
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Budget Modal -->
+    <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-semibold mb-6">Set New Budget</h3>
+            <form id="budgetForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Amount</label>
+                    <input type="number" step="0.01" id="budgetAmount" required 
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Period</label>
+                    <select id="budgetPeriod" required
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="monthly">Monthly</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Start Date</label>
+                    <input type="datetime-local" id="budgetStartDate" required
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">End Date</label>
+                    <input type="datetime-local" id="budgetEndDate" required
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" id="cancelBudget" class="flex-1 px-4 py-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 gradient-bg py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        Set Budget
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authToken) {
+                showDashboard();
+                loadUserData();
+            } else {
+                showAuth();
+            }
+            
+            setupEventListeners();
+            setupFormHandlers();
+            setupModalHandlers();
+            setupSidebarNavigation();
+        });
+
+        function setupEventListeners() {
+            // Auth form toggles
+            document.getElementById('showRegister').addEventListener('click', () => {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            });
+            
+            document.getElementById('showLogin').addEventListener('click', () => {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+            });
+            
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+
+        function setupFormHandlers() {
+            // Login form
+            document.getElementById('loginFormEl').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const loginBtn = document.getElementById('loginBtnText');
+                const loginSpinner = document.getElementById('loginSpinner');
+                
+                loginBtn.classList.add('hidden');
+                loginSpinner.classList.remove('hidden');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/users/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            username: username,
+                            password: password
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        authToken = data.access_token;
+                        localStorage.setItem('authToken', authToken);
+                        showDashboard();
+                        await loadUserData();
+                    } else {
+                        const error = await response.json();
+                        alert(error.detail || 'Login failed');
+                    }
+                } catch (error) {
+                    alert('Login failed: ' + error.message);
+                } finally {
+                    loginBtn.classList.remove('hidden');
+                    loginSpinner.classList.add('hidden');
+                }
+            });
+            
+            // Register form
+            document.getElementById('registerFormEl').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                
+                const registerBtn = document.getElementById('registerBtnText');
+                const registerSpinner = document.getElementById('registerSpinner');
+                
+                registerBtn.classList.add('hidden');
+                registerSpinner.classList.remove('hidden');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/users/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            email: email,
+                            password: password
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('Account created successfully! Please login.');
+                        document.getElementById('registerForm').classList.add('hidden');
+                        document.getElementById('loginForm').classList.remove('hidden');
+                    } else {
+                        const error = await response.json();
+                        alert(error.detail || 'Registration failed');
+                    }
+                } catch (error) {
+                    alert('Registration failed: ' + error.message);
+                } finally {
+                    registerBtn.classList.remove('hidden');
+                    registerSpinner.classList.add('hidden');
+                }
+            });
+        }
+
+        function setupModalHandlers() {
+            // Add expense modal
+            document.getElementById('addExpenseBtn').addEventListener('click', () => {
+                document.getElementById('expenseModal').classList.remove('hidden');
+                document.getElementById('expenseDate').value = new Date().toISOString().slice(0, 16);
+            });
+            
+            document.getElementById('cancelExpense').addEventListener('click', () => {
+                document.getElementById('expenseModal').classList.add('hidden');
+            });
+            
+            // Add budget modal
+            document.getElementById('addBudgetBtn').addEventListener('click', () => {
+                document.getElementById('budgetModal').classList.remove('hidden');
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                
+                document.getElementById('budgetStartDate').value = startOfMonth.toISOString().slice(0, 16);
+                document.getElementById('budgetEndDate').value = endOfMonth.toISOString().slice(0, 16);
+            });
+            
+            document.getElementById('cancelBudget').addEventListener('click', () => {
+                document.getElementById('budgetModal').classList.add('hidden');
+            });
+            
+            // Expense form submission
+            document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await addExpense();
+            });
+            
+            // Budget form submission
+            document.getElementById('budgetForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await addBudget();
+            });
+        }
+
+        function setupSidebarNavigation() {
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Remove active class from all items
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    // Add active class to clicked item
+                    e.currentTarget.classList.add('active');
+                    
+                    // Hide all sections
+                    document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+                    
+                    // Show selected section
+                    const sectionName = e.currentTarget.dataset.section;
+                    document.getElementById(sectionName + 'Section').classList.remove('hidden');
+                    
+                    // Load section-specific data
+                    loadSectionData(sectionName);
+                });
+            });
+        }
+
+        async function addExpense() {
+            const expenseData = {
+                amount: parseFloat(document.getElementById('expenseAmount').value),
+                category: document.getElementById('expenseCategory').value,
+                description: document.getElementById('expenseDescription').value,
+                date: new Date(document.getElementById('expenseDate').value).toISOString()
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/expenses/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(expenseData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('expenseModal').classList.add('hidden');
+                    document.getElementById('expenseForm').reset();
+                    await loadExpenses();
+                    await loadOverviewData();
+                    alert('Expense added successfully!');
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to add expense');
+                }
+            } catch (error) {
+                alert('Failed to add expense: ' + error.message);
+            }
+        }
+
+        async function addBudget() {
+            const budgetData = {
+                amount: parseFloat(document.getElementById('budgetAmount').value),
+                period: document.getElementById('budgetPeriod').value,
+                start_date: new Date(document.getElementById('budgetStartDate').value).toISOString(),
+                end_date: new Date(document.getElementById('budgetEndDate').value).toISOString()
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/budget/set`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(budgetData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('budgetModal').classList.add('hidden');
+                    document.getElementById('budgetForm').reset();
+                    await loadBudgets();
+                    await loadOverviewData();
+                    alert('Budget set successfully!');
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to set budget');
+                }
+            } catch (error) {
+                alert('Failed to set budget: ' + error.message);
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('userSection').classList.remove('hidden');
+        }
+
+        async function loadUserData() {
+            try {
+                const response = await fetch(`${API_BASE}/users/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('welcomeText').textContent = `Welcome, ${currentUser.username}`;
+                    await loadOverviewData();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+                logout();
+            }
+        }
+
+        async function loadOverviewData() {
+            await Promise.all([
+                loadBudgets(),
+                loadExpenses(),
+                loadBudgetComparison(),
+                loadRecentExpenses()
+            ]);
+        }
+
+        async function loadBudgets() {
+            try {
+                const response = await fetch(`${API_BASE}/budget/`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const budgets = await response.json();
+                    displayBudgets(budgets);
+                    
+                    // Update total budget in overview
+                    const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+                    document.getElementById('totalBudget').textContent = `${totalBudget.toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Failed to load budgets:', error);
+            }
+        }
+
+        async function loadExpenses() {
+            try {
+                const response = await fetch(`${API_BASE}/expenses/`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const expenses = await response.json();
+                    displayExpenses(expenses);
+                    
+                    // Update total spent in overview
+                    const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                    document.getElementById('totalSpent').textContent = `${totalSpent.toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Failed to load expenses:', error);
+            }
+        }
+
+        async function loadBudgetComparison() {
+            try {
+                const response = await fetch(`${API_BASE}/expenses/analysis/compare`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const comparison = await response.json();
+                    updateBudgetProgress(comparison);
+                }
+            } catch (error) {
+                console.error('Failed to load budget comparison:', error);
+            }
+        }
+
+        async function loadRecentExpenses() {
+            try {
+                const response = await fetch(`${API_BASE}/expenses/`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const expenses = await response.json();
+                    const recentExpenses = expenses.slice(-5).reverse(); // Get last 5 expenses
+                    displayRecentExpenses(recentExpenses);
+                }
+            } catch (error) {
+                console.error('Failed to load recent expenses:', error);
+            }
+        }
+
+        function displayBudgets(budgets) {
+            const container = document.getElementById('budgetsList');
+            if (!budgets.length) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-piggy-bank text-6xl text-gray-600 mb-4"></i>
+                        <p class="text-gray-400">No budgets set yet. Create your first budget to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = budgets.map(budget => `
+                <div class="expense-item bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-piggy-bank text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">${budget.period.charAt(0).toUpperCase() + budget.period.slice(1)} Budget</h4>
+                            <p class="text-gray-400 text-sm">
+                                ${new Date(budget.start_date).toLocaleDateString()} - ${new Date(budget.end_date).toLocaleDateString()}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-lg text-green-400">${budget.amount.toFixed(2)}</p>
+                        <button onclick="deleteBudget(${budget.id})" class="text-red-400 hover:text-red-300 text-sm">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayExpenses(expenses) {
+            const container = document.getElementById('expensesList');
+            if (!expenses.length) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-receipt text-6xl text-gray-600 mb-4"></i>
+                        <p class="text-gray-400">No expenses recorded yet. Add your first expense to start tracking!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const categoryIcons = {
+                food: 'utensils',
+                transportation: 'car',
+                shopping: 'shopping-bag',
+                entertainment: 'gamepad',
+                bills: 'file-invoice-dollar',
+                healthcare: 'heartbeat',
+                other: 'ellipsis-h'
+            };
+            
+            container.innerHTML = expenses.reverse().map(expense => `
+                <div class="expense-item bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-${categoryIcons[expense.category] || 'ellipsis-h'} text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">${expense.description || 'No description'}</h4>
+                            <p class="text-gray-400 text-sm capitalize">${expense.category}</p>
+                            <p class="text-gray-500 text-xs">${new Date(expense.date).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-lg text-red-400">-${expense.amount.toFixed(2)}</p>
+                        <button onclick="deleteExpense(${expense.id})" class="text-red-400 hover:text-red-300 text-sm">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayRecentExpenses(expenses) {
+            const container = document.getElementById('recentExpenses');
+            if (!expenses.length) {
+                container.innerHTML = '<p class="text-gray-400 text-center">No recent expenses</p>';
+                return;
+            }
+            
+            const categoryIcons = {
+                food: 'utensils',
+                transportation: 'car',
+                shopping: 'shopping-bag',
+                entertainment: 'gamepad',
+                bills: 'file-invoice-dollar',
+                healthcare: 'heartbeat',
+                other: 'ellipsis-h'
+            };
+            
+            container.innerHTML = expenses.map(expense => `
+                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-${categoryIcons[expense.category] || 'ellipsis-h'} text-white text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-sm">${expense.description || 'No description'}</p>
+                            <p class="text-gray-400 text-xs capitalize">${expense.category}</p>
+                        </div>
+                    </div>
+                    <p class="font-semibold text-red-400">-${expense.amount.toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateBudgetProgress(comparison) {
+            if (!comparison.budget) {
+                document.getElementById('remaining').textContent = 'No budget set';
+                document.getElementById('savingsRate').textContent = 'N/A';
+                document.getElementById('budgetPercentage').textContent = 'N/A';
+                document.getElementById('budgetProgressBar').style.width = '0%';
+                return;
+            }
+            
+            const remaining = comparison.remaining;
+            const percentage = (comparison.total_spent / comparison.budget) * 100;
+            const savingsRate = ((comparison.budget - comparison.total_spent) / comparison.budget) * 100;
+            
+            document.getElementById('remaining').textContent = `${remaining.toFixed(2)}`;
+            document.getElementById('savingsRate').textContent = `${Math.max(0, savingsRate).toFixed(1)}%`;
+            document.getElementById('budgetPercentage').textContent = `${Math.min(100, percentage).toFixed(1)}%`;
+            document.getElementById('budgetProgressBar').style.width = `${Math.min(100, percentage)}%`;
+            
+            // Change progress bar color based on usage
+            const progressBar = document.getElementById('budgetProgressBar');
+            if (percentage > 90) {
+                progressBar.className = 'expense-progress h-3 rounded-full transition-all duration-500';
+            } else if (percentage > 70) {
+                progressBar.className = 'h-3 rounded-full transition-all duration-500';
+                progressBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+            } else {
+                progressBar.className = 'budget-progress h-3 rounded-full transition-all duration-500';
+            }
+        }
+
+        async function loadSectionData(sectionName) {
+            switch (sectionName) {
+                case 'overview':
+                    await loadOverviewData();
+                    break;
+                case 'expenses':
+                    await loadExpenses();
+                    break;
+                case 'budgets':
+                    await loadBudgets();
+                    break;
+                case 'analytics':
+                    await loadAnalytics();
+                    break;
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const [weeklyResponse, monthlyResponse] = await Promise.all([
+                    fetch(`${API_BASE}/expenses/analysis/weekly`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }),
+                    fetch(`${API_BASE}/expenses/analysis/monthly`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    })
+                ]);
+                
+                if (weeklyResponse.ok && monthlyResponse.ok) {
+                    const weeklyData = await weeklyResponse.json();
+                    const monthlyData = await monthlyResponse.json();
+                    
+                    displayWeeklyAnalysis(weeklyData);
+                    displayMonthlyAnalysis(monthlyData);
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        function displayWeeklyAnalysis(data) {
+            const container = document.getElementById('weeklyAnalysis');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Period</span>
+                        <span class="font-semibold">${data.period}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Total Spent</span>
+                        <span class="font-bold text-lg text-red-400">${data.total_spent.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Number of Expenses</span>
+                        <span class="font-semibold">${data.expenses.length}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Average per Expense</span>
+                        <span class="font-semibold">${data.expenses.length > 0 ? (data.total_spent / data.expenses.length).toFixed(2) : '0.00'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayMonthlyAnalysis(data) {
+            const container = document.getElementById('monthlyAnalysis');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Period</span>
+                        <span class="font-semibold">${data.period}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Total Spent</span>
+                        <span class="font-bold text-lg text-red-400">${data.total_spent.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Number of Expenses</span>
+                        <span class="font-semibold">${data.expenses.length}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Daily Average</span>
+                        <span class="font-semibold">${(data.total_spent / new Date().getDate()).toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function deleteExpense(expenseId) {
+            if (!confirm('Are you sure you want to delete this expense?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/expenses/${expenseId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    await loadExpenses();
+                    await loadOverviewData();
+                    alert('Expense deleted successfully!');
+                } else {
+                    alert('Failed to delete expense');
+                }
+            } catch (error) {
+                alert('Failed to delete expense: ' + error.message);
+            }
+        }
+
+        async function deleteBudget(budgetId) {
+            if (!confirm('Are you sure you want to delete this budget?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/budget/${budgetId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    await loadBudgets();
+                    await loadOverviewData();
+                    alert('Budget deleted successfully!');
+                } else {
+                    alert('Failed to delete budget');
+                }
+            } catch (error) {
+                alert('Failed to delete budget: ' + error.message);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showAuth();
+            
+            // Reset forms
+            document.getElementById('loginFormEl').reset();
+            document.getElementById('registerFormEl').reset();
+            
+            // Reset to login form
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('expenseModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.currentTarget.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('budgetModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.currentTarget.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
